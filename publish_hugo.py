@@ -28,7 +28,7 @@ from datetime import datetime
 from pathlib import Path
 
 HERE = Path(__file__).parent.resolve()
-SECTIONS = {"mlp-weekly", "qmc-weekly", "cqed-weekly", "sermons"}
+SECTIONS = {"mlp-weekly", "qmc-weekly", "cqed-weekly"}
 
 # Public URL pattern — update once Cloudflare Pages live
 PUBLIC_BASE = os.environ.get("WEEKLY_BLOGS_BASE", "https://digest.cwmyung.com")
