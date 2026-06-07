@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>대기업 로봇주 퀀트 분석 — 2026.06</title>
+<style>
+  :root{
+    --bg:#0d1117; --card:#161b22; --line:#21262d; --ink:#e6edf3;
+    --sub:#8b949e; --accent:#2f81f7; --green:#3fb950; --red:#f85149;
+    --amber:#d29922; --chip:#1f2937;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;
+    line-height:1.65;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:920px;margin:0 auto;padding:32px 18px 80px}
+  header.site{border-bottom:1px solid var(--line);padding-bottom:20px;margin-bottom:28px}
+  .kicker{color:var(--accent);font-weight:700;font-size:.82rem;letter-spacing:.08em;text-transform:uppercase}
+  h1{font-size:1.9rem;margin:.3em 0 .15em;line-height:1.25}
+  .meta{color:var(--sub);font-size:.9rem}
+  h2{font-size:1.25rem;margin:2.2em 0 .6em;border-left:3px solid var(--accent);padding-left:.55em}
+  p{color:#c9d1d9}
+  .lead{font-size:1.05rem;color:var(--ink);background:var(--card);
+    border:1px solid var(--line);border-left:3px solid var(--green);
+    padding:14px 16px;border-radius:8px}
+  /* ranking cards */
+  .rank{display:flex;flex-direction:column;gap:12px}
+  .row{background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:16px 18px;display:grid;grid-template-columns:34px 1fr auto;gap:14px;align-items:center}
+  .row .badge{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;
+    font-weight:800;background:var(--chip);color:var(--ink);font-size:1.05rem}
+  .row.top .badge{background:linear-gradient(135deg,#2f81f7,#3fb950);color:#fff}
+  .nm{font-weight:700;font-size:1.06rem}
+  .nm small{color:var(--sub);font-weight:500;margin-left:6px;font-size:.8rem}
+  .grp{color:var(--sub);font-size:.82rem;margin-top:1px}
+  .scorebox{text-align:right}
+  .scorebox .s{font-size:1.3rem;font-weight:800}
+  .scorebox .l{font-size:.72rem;color:var(--sub);text-transform:uppercase;letter-spacing:.05em}
+  /* metric strip */
+  .mets{grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fit,minmax(86px,1fr));
+    gap:8px;margin-top:6px;border-top:1px solid var(--line);padding-top:12px}
+  .met{background:#0d1117;border:1px solid var(--line);border-radius:8px;padding:8px 10px;text-align:center}
+  .met .v{font-weight:700;font-size:.98rem}
+  .met .k{color:var(--sub);font-size:.68rem;margin-top:2px}
+  .pos{color:var(--green)} .neg{color:var(--red)} .warn{color:var(--amber)}
+  /* table */
+  table{width:100%;border-collapse:collapse;margin-top:8px;font-size:.88rem}
+  th,td{padding:9px 8px;text-align:right;border-bottom:1px solid var(--line)}
+  th:first-child,td:first-child{text-align:left}
+  th{color:var(--sub);font-weight:600;font-size:.78rem;text-transform:uppercase;letter-spacing:.03em}
+  tbody tr:hover{background:#11161d}
+  .bar{height:6px;border-radius:3px;background:var(--accent);display:inline-block;vertical-align:middle}
+  ul{padding-left:1.1em}
+  li{margin:.35em 0;color:#c9d1d9}
+  .note{font-size:.84rem;color:var(--sub);background:#161b22;border:1px dashed var(--line);
+    border-radius:8px;padding:12px 14px;margin-top:14px}
+  .formula{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.82rem;
+    background:#0d1117;border:1px solid var(--line);border-radius:6px;padding:3px 7px;color:#a5d6ff}
+  footer{margin-top:48px;padding-top:18px;border-top:1px solid var(--line);color:var(--sub);font-size:.82rem}
+  a{color:var(--accent);text-decoration:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="site">
+    <div class="kicker">Quant Note · Korea Robotics</div>
+    <h1>🤖 대기업 로봇주 퀀트 분석</h1>
+    <div class="meta">분석일 2026-06-07 · 데이터 구간 2025-06-07 → 2026-06-07 (일간 종가, pykrx) · 무위험수익률 3.5% 가정</div>
+  </header>
+
+  <p class="lead"><b>요약.</b> 현대차그룹 보스턴다이내믹스(아틀라스)와 LG·삼성·두산의 로봇 모멘텀이 대형주를 끌어올린 1년.
+  단순 수익률 1위는 <b>현대오토에버(+468%)</b>지만, 위험조정(샤프)·최근 모멘텀·현재 낙폭을 합친 퀀트 스코어 1위는 <b>LG전자</b>다.
+  레인보우로보틱스는 최근 3개월 모멘텀이 음(−)으로 꺾여 후순위.</p>
+
+  <h2>📊 퀀트 스코어 랭킹</h2>
+  <div class="rank" id="rank"></div>
+  <div class="note">
+    <b>스코어 정의.</b>
+    <span class="formula">score = 0.40·z(Sharpe) + 0.35·z(3M모멘텀) + 0.25·z(−현재낙폭)</span><br>
+    위험조정 수익(샤프)에 가중을 두고, 추세 지속성(최근 3개월)과 고점 대비 되돌림(낮을수록 가점)을 반영한 6종목 상대 z-score 합산. 절대 매수신호가 아닌 <b>상대 순위</b>다.
+  </div>
+
+  <h2>📋 원지표 테이블</h2>
+  <div style="overflow-x:auto">
+  <table id="tbl">
+    <thead><tr>
+      <th>종목</th><th>현재가</th><th>1년%</th><th>연율변동성</th><th>샤프</th>
+      <th>MDD</th><th>현재낙폭</th><th>1M</th><th>3M</th><th>6M</th>
+    </tr></thead>
+    <tbody></tbody>
+  </table>
+  </div>
+
+  <h2>🔍 종목별 한 줄 해석</h2>
+  <ul id="takes"></ul>
+
+  <h2>🧭 투자 성격 정리</h2>
+  <ul>
+    <li><b>위험조정 최강 (추세+안정):</b> LG전자 · 현대오토에버 — 높은 샤프 + 얕은 현재낙폭.</li>
+    <li><b>하방 안정 (대장 본주):</b> 현대차 — 현재낙폭 −6.7%로 6종목 중 가장 견조, BD 지분가치 레버리지.</li>
+    <li><b>순수 로봇 베타:</b> 두산로보틱스 — 협동로봇 대장, 변동성 높음.</li>
+    <li><b>모멘텀 둔화 주의:</b> 레인보우로보틱스 — 3M −20%, 6종목 중 유일하게 단기 추세 음전. MDD −40.8%로 변동성 최대.</li>
+  </ul>
+
+  <div class="note" style="border-style:solid;border-color:var(--amber)">
+    ⚠️ <b>면책.</b> 본 페이지는 과거 종가 기반 통계 분석이며 <b>투자 추천이 아니다.</b>
+    point-to-point 수익률은 기업이벤트(분할 등)에 왜곡될 수 있고, 6종목 전부 대폭 상승 후 구간이다.
+    실제 판단은 실적·수주·6월 보스턴다이내믹스 IPO 결과 확인 후.
+  </div>
+
+  <footer>
+    Chang Woo Myung · sns-alpha quant series · 데이터 출처 KRX(pykrx). 생성 2026-06-07.
+  </footer>
+</div>
+
+<script>
+const DATA = [
+  {
+    "code": "066570",
+    "name": "LG전자",
+    "group": "LG그룹",
+    "price": 303000,
+    "ret1y": 315.6,
+    "annret": 338.2,
+    "vol": 81.0,
+    "sharpe": 4.13,
+    "mdd": -28.0,
+    "curdd": -22.8,
+    "m1": 95.6,
+    "m3": 162.6,
+    "m6": 254.8,
+    "score": 1.13
+  },
+  {
+    "code": "307950",
+    "name": "현대오토에버",
+    "group": "현대차그룹",
+    "price": 836000,
+    "ret1y": 468.3,
+    "annret": 506.1,
+    "vol": 96.4,
+    "sharpe": 5.21,
+    "mdd": -29.0,
+    "curdd": -10.9,
+    "m1": 89.6,
+    "m3": 107.7,
+    "m6": 344.4,
+    "score": 0.69
+  },
+  {
+    "code": "005380",
+    "name": "현대차",
+    "group": "현대차그룹",
+    "price": 700000,
+    "ret1y": 253.9,
+    "annret": 270.9,
+    "vol": 62.0,
+    "sharpe": 4.31,
+    "mdd": -33.9,
+    "curdd": -6.7,
+    "m1": 27.3,
+    "m3": 27.7,
+    "m6": 167.7,
+    "score": -0.24
+  },
+  {
+    "code": "454910",
+    "name": "두산로보틱스",
+    "group": "두산그룹",
+    "price": 140300,
+    "ret1y": 175.6,
+    "annret": 186.2,
+    "vol": 78.5,
+    "sharpe": 2.33,
+    "mdd": -34.2,
+    "curdd": -15.8,
+    "m1": 34.0,
+    "m3": 54.9,
+    "m6": 90.9,
+    "score": -0.36
+  },
+  {
+    "code": "012330",
+    "name": "현대모비스",
+    "group": "현대차그룹",
+    "price": 697000,
+    "ret1y": 149.4,
+    "annret": 158.0,
+    "vol": 63.1,
+    "sharpe": 2.45,
+    "mdd": -28.5,
+    "curdd": -9.2,
+    "m1": 61.2,
+    "m3": 61.3,
+    "m6": 128.9,
+    "score": -0.53
+  },
+  {
+    "code": "277810",
+    "name": "레인보우로보틱스",
+    "group": "삼성 계열",
+    "price": 668000,
+    "ret1y": 136.0,
+    "annret": 143.7,
+    "vol": 81.0,
+    "sharpe": 1.73,
+    "mdd": -40.8,
+    "curdd": -24.1,
+    "m1": -4.8,
+    "m3": -20.2,
+    "m6": 74.2,
+    "score": -0.69
+  }
+];
+
+const won = n => n.toLocaleString('ko-KR');
+const sgn = v => v==null?'—':(v>=0?'pos':'neg');
+const pct = v => v==null?'—':(v>=0?'+':'')+v+'%';
+
+// ranking cards
+const rank = document.getElementById('rank');
+DATA.forEach((d,i)=>{
+  const el = document.createElement('div');
+  el.className = 'row'+(i===0?' top':'');
+  el.innerHTML = `
+    <div class="badge">${i+1}</div>
+    <div>
+      <div class="nm">${d.name}<small>${d.code}</small></div>
+      <div class="grp">${d.group}</div>
+      <div class="mets">
+        <div class="met"><div class="v">${won(d.price)}</div><div class="k">현재가(원)</div></div>
+        <div class="met"><div class="v ${sgn(d.ret1y)}">${pct(d.ret1y)}</div><div class="k">1년 수익</div></div>
+        <div class="met"><div class="v">${d.sharpe}</div><div class="k">샤프</div></div>
+        <div class="met"><div class="v warn">${d.vol}%</div><div class="k">연율 변동성</div></div>
+        <div class="met"><div class="v ${sgn(d.curdd)}">${pct(d.curdd)}</div><div class="k">현재 낙폭</div></div>
+        <div class="met"><div class="v ${sgn(d.m3)}">${pct(d.m3)}</div><div class="k">3개월</div></div>
+      </div>
+    </div>
+    <div class="scorebox">
+      <div class="s ${d.score>=0?'pos':'neg'}">${d.score>=0?'+':''}${d.score}</div>
+      <div class="l">score</div>
+    </div>`;
+  rank.appendChild(el);
+});
+
+// table with bar on 1y return
+const maxRet = Math.max(...DATA.map(d=>d.ret1y));
+const tb = document.querySelector('#tbl tbody');
+DATA.slice().sort((a,b)=>b.ret1y-a.ret1y).forEach(d=>{
+  const tr=document.createElement('tr');
+  tr.innerHTML = `
+    <td>${d.name}</td>
+    <td>${won(d.price)}</td>
+    <td class="${sgn(d.ret1y)}">${pct(d.ret1y)} <span class="bar" style="width:${Math.round(d.ret1y/maxRet*60)}px"></span></td>
+    <td class="warn">${d.vol}%</td>
+    <td>${d.sharpe}</td>
+    <td class="neg">${d.mdd}%</td>
+    <td class="${sgn(d.curdd)}">${pct(d.curdd)}</td>
+    <td class="${sgn(d.m1)}">${pct(d.m1)}</td>
+    <td class="${sgn(d.m3)}">${pct(d.m3)}</td>
+    <td class="${sgn(d.m6)}">${pct(d.m6)}</td>`;
+  tb.appendChild(tr);
+});
+
+// one-liner takes
+const TAKES = {
+  "066570":"위험조정 1위. 샤프 4.13에 3M +163% — 가전·AI·로봇 동반 상승, 추세 가장 건강.",
+  "307950":"수익률 1위(+468%). 현재낙폭 −10.9%로 추세 견조, BD '두뇌(SW)' 재평가 핵심.",
+  "005380":"현재낙폭 −6.7%로 가장 안정. 로봇 비중은 작지만 BD 지분가치 레버리지 + 목표가 100만원설.",
+  "454910":"순수 협동로봇 대장. 변동성 78%, 모멘텀 견조하나 그룹주 대비 베타 큼.",
+  "012330":"현대차 밸류체인 부품주. 1M·3M +61%로 최근 재가속, 낙폭 얕음.",
+  "277810":"삼성 계열 휴머노이드. 단 3M −20%로 단기 추세 음전, MDD −40.8% 최대 — 진입 신중."
+};
+const takes=document.getElementById('takes');
+DATA.slice().sort((a,b)=>b.ret1y-a.ret1y).forEach(d=>{
+  const li=document.createElement('li');
+  li.innerHTML = `<b>${d.name} (${d.code}):</b> ${TAKES[d.code]||''}`;
+  takes.appendChild(li);
+});
+</script>
+</body>
+</html>
